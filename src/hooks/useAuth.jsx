@@ -1,57 +1,69 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import {
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+} from 'firebase/auth'
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { auth, db } from '../lib/firebase'
 
 const AuthContext = createContext(null)
+
+const KNOWN_PROFILES = {
+  'rmaraujo@me.com':    { display_name: 'Rodrigo', color: 'yellow' },
+  'maiana.ds@gmail.com': { display_name: 'Maiana',  color: 'green'  },
+}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined) // undefined = loading
   const [profile, setProfile] = useState(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-    })
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setSession(null)
+        setProfile(null)
+        return
+      }
+      setSession(user)
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
+      const profileRef = doc(db, 'profiles', user.uid)
+      const snap = await getDoc(profileRef)
 
-    return () => listener.subscription.unsubscribe()
+      if (snap.exists()) {
+        setProfile({ id: user.uid, ...snap.data() })
+      } else {
+        // Auto-create on first login
+        const defaults = KNOWN_PROFILES[user.email] ?? {
+          display_name: user.email.split('@')[0],
+          color: 'yellow',
+        }
+        const newProfile = {
+          email: user.email,
+          display_name: defaults.display_name,
+          color: defaults.color,
+          created_at: serverTimestamp(),
+        }
+        await setDoc(profileRef, newProfile)
+        setProfile({ id: user.uid, ...newProfile, created_at: new Date().toISOString() })
+      }
+    })
+    return unsubscribe
   }, [])
 
-  useEffect(() => {
-    if (!session?.user) {
-      setProfile(null)
-      return
-    }
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data }) => setProfile(data))
-  }, [session?.user?.id])
-
   async function signIn(email, password) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
+    await signInWithEmailAndPassword(auth, email, password)
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    await firebaseSignOut(auth)
   }
 
   async function updateProfile(updates) {
-    if (!session?.user) return
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', session.user.id)
-      .select()
-      .single()
-    if (error) throw error
-    setProfile(data)
-    return data
+    if (!session) return
+    const ref = doc(db, 'profiles', session.uid)
+    await updateDoc(ref, updates)
+    setProfile((prev) => ({ ...prev, ...updates }))
   }
 
   return (

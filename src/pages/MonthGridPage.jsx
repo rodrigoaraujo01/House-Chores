@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { useChores, useCategories } from '../hooks/useChores'
-import { useMonthLogs, useAddLog, useDeleteLog, useRealtimeLogs } from '../hooks/useLogs'
+import { useMonthLogs, useAddLog, useDeleteLog } from '../hooks/useLogs'
 import { useProfiles } from '../hooks/useProfiles'
 import { useScores } from '../hooks/useScores'
 import { Layout } from '../components/Layout'
@@ -25,13 +25,9 @@ export function MonthGridPage() {
 
   const addLog = useAddLog()
   const deleteLog = useDeleteLog()
-  const subscribeRealtime = useRealtimeLogs(year, month)
-  const scores = useScores(logs, profiles)
+  const scores = useScores(logs, profiles, chores)
 
-  useEffect(() => {
-    const unsubscribe = subscribeRealtime()
-    return unsubscribe
-  }, [year, month])
+  // Realtime is handled inside useMonthLogs via onSnapshot — no extra setup needed
 
   function handleMonthChange(delta) {
     const d = new Date(year, month + delta)

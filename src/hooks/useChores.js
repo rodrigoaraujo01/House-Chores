@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase'
+import {
+  collection, getDocs, addDoc, updateDoc, deleteDoc,
+  doc, query, where, serverTimestamp,
+} from 'firebase/firestore'
+import { db } from '../lib/firebase'
 
 // ─── Categories ─────────────────────────────────────────────────────────────
 
@@ -7,13 +11,10 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('display_order')
-        .order('name')
-      if (error) throw error
-      return data
+      const snap = await getDocs(collection(db, 'categories'))
+      return snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.display_order - b.display_order) || a.name.localeCompare(b.name))
     },
   })
 }
@@ -22,11 +23,16 @@ export function useUpsertCategory() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (cat) => {
-      const { data, error } = cat.id
-        ? await supabase.from('categories').update(cat).eq('id', cat.id).select().single()
-        : await supabase.from('categories').insert(cat).select().single()
-      if (error) throw error
-      return data
+      if (cat.id) {
+        const { id, ...data } = cat
+        await updateDoc(doc(db, 'categories', id), data)
+        return cat
+      }
+      const ref = await addDoc(collection(db, 'categories'), {
+        ...cat,
+        created_at: serverTimestamp(),
+      })
+      return { id: ref.id, ...cat }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['categories'] }),
   })
@@ -35,10 +41,7 @@ export function useUpsertCategory() {
 export function useDeleteCategory() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase.from('categories').delete().eq('id', id)
-      if (error) throw error
-    },
+    mutationFn: async (id) => deleteDoc(doc(db, 'categories', id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['categories'] })
       qc.invalidateQueries({ queryKey: ['chores'] })
@@ -52,13 +55,12 @@ export function useChores() {
   return useQuery({
     queryKey: ['chores'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('chores')
-        .select('*, categories(id, name, emoji)')
-        .eq('is_active', true)
-        .order('name')
-      if (error) throw error
-      return data
+      const snap = await getDocs(
+        query(collection(db, 'chores'), where('is_active', '==', true))
+      )
+      return snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => a.name.localeCompare(b.name))
     },
   })
 }
@@ -67,13 +69,18 @@ export function useUpsertChore() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (chore) => {
-      const payload = { ...chore }
-      delete payload.categories
-      const { data, error } = chore.id
-        ? await supabase.from('chores').update(payload).eq('id', chore.id).select().single()
-        : await supabase.from('chores').insert(payload).select().single()
-      if (error) throw error
-      return data
+      // Strip any client-side join artifacts
+      const { categories: _cats, ...data } = chore
+      if (data.id) {
+        const { id, ...rest } = data
+        await updateDoc(doc(db, 'chores', id), rest)
+        return data
+      }
+      const ref = await addDoc(collection(db, 'chores'), {
+        ...data,
+        created_at: serverTimestamp(),
+      })
+      return { id: ref.id, ...data }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['chores'] }),
   })
@@ -82,10 +89,8 @@ export function useUpsertChore() {
 export function useDeleteChore() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id) => {
-      const { error } = await supabase.from('chores').update({ is_active: false }).eq('id', id)
-      if (error) throw error
-    },
+    mutationFn: async (id) =>
+      updateDoc(doc(db, 'chores', id), { is_active: false }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['chores'] }),
   })
 }
