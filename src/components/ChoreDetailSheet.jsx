@@ -34,29 +34,29 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
 
         <div className="flex items-start justify-between px-4 pb-3">
           <div>
-            <h3 className="text-base font-semibold text-text-main">{chore.name}</h3>
-            <p className="text-xs text-warm-gray">
+            <h3 className="text-base font-semibold text-text-primary">{chore.name}</h3>
+            <p className="text-xs text-text-secondary">
               {format(day, 'EEEE, d MMMM')} · {chore.weight}pt{chore.weight !== 1 ? 's' : ''}
             </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-warm-gray hover:bg-muted">
+          <button onClick={onClose} className="p-2 rounded-lg text-text-secondary hover:bg-surface">
             <X size={18} />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           {logs.length === 0 ? (
-            <p className="text-sm text-warm-gray text-center py-4">No logs for this day</p>
+            <p className="text-sm text-text-secondary text-center py-4">No logs for this day</p>
           ) : (
-            <div className="space-y-2 mb-4">
-              {logs.map((log) => {
+            <div className="mb-4">
+              {logs.map((log, i) => {
                 const color = colorMap[log.user_id]
                 const name = nameMap[log.user_id] ?? 'Unknown'
                 const isOwn = log.user_id === currentUserId
                 return (
                   <div
                     key={log.id}
-                    className="flex items-center justify-between bg-muted rounded-2xl px-4 py-3"
+                    className={`flex items-center justify-between py-3 ${i < logs.length - 1 ? 'hairline' : ''}`}
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -64,8 +64,8 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
                         style={{ backgroundColor: color?.hex ?? '#ccc' }}
                       />
                       <div>
-                        <p className="text-sm font-medium text-text-main">{name}</p>
-                        <p className="text-xs text-warm-gray">
+                        <p className="text-sm font-medium text-text-primary">{name}</p>
+                        <p className="text-xs text-text-secondary">
                           {format(parseISO(log.logged_at), 'HH:mm')}
                         </p>
                       </div>
@@ -73,7 +73,7 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
                     {isOwn && (
                       <button
                         onClick={() => onDeleteLog(log)}
-                        className="p-1.5 rounded-lg text-warm-gray hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="p-1.5 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 size={15} />
                       </button>
@@ -85,8 +85,8 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
           )}
 
           {/* Log again with datetime picker */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-warm-gray flex items-center gap-1">
+          <div className="space-y-2 pt-2 border-t border-border-line">
+            <label className="text-xs font-medium text-text-secondary flex items-center gap-1">
               <Clock size={12} />
               When
             </label>
@@ -94,11 +94,11 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
               type="datetime-local"
               value={loggedAt}
               onChange={(e) => setLoggedAt(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main outline-none focus:bg-white border border-warm-border focus:border-primary transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl bg-surface text-sm text-text-primary outline-none border border-border-line focus:border-accent transition-colors"
             />
             <button
               onClick={() => onLog({ chore_id: chore.id, user_id: currentUserId, logged_at: new Date(loggedAt).toISOString() })}
-              className="w-full py-3 rounded-2xl text-sm font-medium text-white flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              className="w-full py-3 rounded-xl text-sm font-medium text-white flex items-center justify-center gap-2 active:scale-95 transition-transform"
               style={{ backgroundColor: colorInfo.hex }}
             >
               <Plus size={16} />

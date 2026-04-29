@@ -4,7 +4,6 @@ import { X, Plus, Clock } from 'lucide-react'
 import { USER_COLORS } from '../lib/utils'
 
 function toDatetimeLocal(date) {
-  // format as YYYY-MM-DDTHH:mm for datetime-local input
   return format(date, "yyyy-MM-dd'T'HH:mm")
 }
 
@@ -17,7 +16,6 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
     if (!open) {
       setSearch('')
     } else {
-      // Reset to current time each time the sheet opens
       setLoggedAt(toDatetimeLocal(new Date()))
     }
   }, [open])
@@ -74,22 +72,22 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
         {/* Header */}
         <div className="flex items-center justify-between px-4 pb-2">
           <div>
-            <h3 className="text-base font-semibold text-text-main">Log a chore</h3>
-            <p className="text-xs text-warm-gray">
+            <h3 className="text-base font-semibold text-text-primary">Log a chore</h3>
+            <p className="text-xs text-text-secondary">
               As{' '}
               <span style={{ color: colorInfo.hex }} className="font-medium">
                 {profile?.display_name}
               </span>
             </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-warm-gray hover:bg-muted">
+          <button onClick={onClose} className="p-2 rounded-lg text-text-secondary hover:bg-surface">
             <X size={18} />
           </button>
         </div>
 
         {/* Date/time picker */}
         <div className="px-4 pb-3">
-          <label className="text-xs font-medium text-warm-gray mb-1 flex items-center gap-1">
+          <label className="text-xs font-medium text-text-secondary mb-1 flex items-center gap-1">
             <Clock size={12} />
             When
           </label>
@@ -97,7 +95,7 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
             type="datetime-local"
             value={loggedAt}
             onChange={(e) => setLoggedAt(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main outline-none focus:bg-white border border-warm-border focus:border-primary transition-colors"
+            className="w-full px-4 py-2.5 rounded-xl bg-surface text-sm text-text-primary outline-none border border-border-line focus:border-accent transition-colors"
           />
         </div>
 
@@ -108,7 +106,7 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
             placeholder="Search chores…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main placeholder-warm-gray outline-none focus:bg-white border border-transparent focus:border-primary transition-colors"
+            className="w-full px-4 py-2.5 rounded-xl bg-surface text-sm text-text-primary placeholder-text-secondary outline-none border border-transparent focus:border-accent transition-colors"
           />
         </div>
 
@@ -116,11 +114,12 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
         <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-4">
           {!search.trim() && suggestedFiltered.length > 0 && (
             <section>
-              <h4 className="text-xs font-semibold text-warm-gray uppercase tracking-wide mb-2">
-                ✨ Suggested
+              <h4 className="section-label mb-2 flex items-center gap-1">
+                <span>✨</span>
+                <span>Suggested</span>
               </h4>
-              <div className="space-y-2">
-                {suggestedFiltered.map((chore) => (
+              <div>
+                {suggestedFiltered.map((chore, i) => (
                   <ChoreRow
                     key={chore.id}
                     chore={chore}
@@ -128,6 +127,7 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
                     loading={logging === chore.id}
                     onLog={() => handleLog(chore)}
                     colorHex={colorInfo.hex}
+                    showDivider={i < suggestedFiltered.length - 1}
                   />
                 ))}
               </div>
@@ -136,12 +136,12 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
 
           {grouped.map(({ cat, chores: list }) => (
             <section key={cat.id}>
-              <h4 className="text-xs font-semibold text-warm-gray uppercase tracking-wide mb-2 flex items-center gap-1">
+              <h4 className="section-label mb-2 flex items-center gap-1">
                 <span>{cat.emoji}</span>
                 <span>{cat.name}</span>
               </h4>
-              <div className="space-y-2">
-                {list.map((chore) => (
+              <div>
+                {list.map((chore, i) => (
                   <ChoreRow
                     key={chore.id}
                     chore={chore}
@@ -149,6 +149,7 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
                     loading={logging === chore.id}
                     onLog={() => handleLog(chore)}
                     colorHex={colorInfo.hex}
+                    showDivider={i < list.length - 1}
                   />
                 ))}
               </div>
@@ -156,7 +157,7 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
           ))}
 
           {filtered.length === 0 && (
-            <p className="text-center text-warm-gray text-sm py-8">No chores found</p>
+            <p className="text-center text-text-secondary text-sm py-8">No chores found</p>
           )}
         </div>
       </div>
@@ -164,12 +165,12 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
   )
 }
 
-function ChoreRow({ chore, count, loading, onLog, colorHex }) {
+function ChoreRow({ chore, count, loading, onLog, colorHex, showDivider }) {
   return (
-    <div className="flex items-center justify-between bg-muted rounded-2xl px-4 py-3">
+    <div className={`flex items-center justify-between py-3 ${showDivider ? 'hairline' : ''}`}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-text-main truncate">{chore.name}</p>
-        <p className="text-xs text-warm-gray">
+        <p className="text-sm font-medium text-text-primary truncate">{chore.name}</p>
+        <p className="text-xs text-text-secondary">
           {chore.weight}pt{chore.weight !== 1 ? 's' : ''}
           {count > 0 && (
             <span className="ml-2 font-medium" style={{ color: colorHex }}>
@@ -181,12 +182,12 @@ function ChoreRow({ chore, count, loading, onLog, colorHex }) {
       <button
         onClick={onLog}
         disabled={loading}
-        className="ml-3 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm active:scale-90 transition-transform disabled:opacity-60"
+        className="ml-3 w-8 h-8 rounded-full flex items-center justify-center text-white active:scale-90 transition-transform disabled:opacity-60"
         style={{ backgroundColor: colorHex }}
       >
         {loading
-          ? <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-          : <Plus size={18} />
+          ? <div className="w-3.5 h-3.5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+          : <Plus size={16} />
         }
       </button>
     </div>
