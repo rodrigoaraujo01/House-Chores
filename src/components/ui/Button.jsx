@@ -1,13 +1,11 @@
 export function Button({ children, variant = 'primary', size = 'md', type = 'button', className = '', ...props }) {
-  const base = 'inline-flex items-center justify-center font-medium rounded-2xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none'
+  const base = 'inline-flex items-center justify-center font-medium rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none'
 
   const variants = {
-    primary: 'bg-primary text-white shadow-sm hover:bg-primary-dark',
-    secondary: 'bg-muted text-text-main hover:bg-warm-border',
-    ghost: 'text-warm-gray hover:bg-muted',
+    primary: 'bg-accent text-white hover:bg-accent-dark',
+    secondary: 'bg-surface text-text-primary hover:bg-border-line',
+    ghost: 'text-text-secondary hover:bg-surface',
     danger: 'bg-red-50 text-red-600 hover:bg-red-100',
-    rodrigo: 'bg-rodrigo text-text-main shadow-sm',
-    maiana: 'bg-maiana text-white shadow-sm',
   }
 
   const sizes = {
