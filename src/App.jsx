@@ -53,8 +53,9 @@ export default function App() {
 function AppRoutes() {
   const { session } = useAuth()
 
-  // Schedule daily 22:00 notification
+  // Schedule daily 22:00 notification (not supported on iOS Safari)
   useEffect(() => {
+    if (typeof Notification === 'undefined') return
     if (Notification.permission === 'granted') {
       const id = scheduleDailyNotification(22)
       return () => clearTimeout(id)
@@ -121,6 +122,7 @@ function GlobalLogSheet() {
 }
 
 function scheduleDailyNotification(hour) {
+  if (typeof Notification === 'undefined') return 0
   const now = new Date()
   const target = new Date()
   target.setHours(hour, 0, 0, 0)
