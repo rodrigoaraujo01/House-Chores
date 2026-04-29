@@ -16,11 +16,9 @@ export function MonthGrid({ logs = [], chores = [], categories = [], profiles = 
     return active.filter((c) => c.category_id === activeCategoryId)
   }, [chores, activeCategoryId])
 
-  // Identify user IDs by color
   const rodrigoProfile = profiles.find((p) => p.color === 'yellow')
   const maianaProfile = profiles.find((p) => p.color === 'green')
 
-  // Build a lookup: { 'isoDate:choreId' -> { rc, mc } }
   const cellData = useMemo(() => {
     const map = {}
     logs.forEach((log) => {
@@ -34,31 +32,10 @@ export function MonthGrid({ logs = [], chores = [], categories = [], profiles = 
     return map
   }, [logs, rodrigoProfile, maianaProfile])
 
-  const today = new Date()
-
   return (
     <div className="flex flex-col h-full">
-      {/* Month navigation */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <button
-          onClick={() => onMonthChange(-1)}
-          className="p-2 rounded-xl text-warm-gray hover:bg-muted active:bg-warm-border transition-colors"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <h2 className="text-base font-semibold text-text-main">
-          {format(new Date(year, month), 'MMMM yyyy')}
-        </h2>
-        <button
-          onClick={() => onMonthChange(1)}
-          className="p-2 rounded-xl text-warm-gray hover:bg-muted active:bg-warm-border transition-colors"
-        >
-          <ChevronRight size={20} />
-        </button>
-      </div>
-
       {/* Category filter */}
-      <div className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto scrollbar-hide">
         <CategoryPill
           active={activeCategoryId === 'all'}
           onClick={() => setActiveCategoryId('all')}
@@ -82,38 +59,52 @@ export function MonthGrid({ logs = [], chores = [], categories = [], profiles = 
         />
       </div>
 
+      {/* Month navigation */}
+      <div className="flex items-center justify-between px-4 py-2">
+        <button
+          onClick={() => onMonthChange(-1)}
+          className="p-1.5 rounded-lg text-text-secondary hover:bg-surface active:bg-border-line transition-colors"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <h2 className="text-sm font-medium text-text-primary">
+          {format(new Date(year, month), 'MMMM yyyy')}
+        </h2>
+        <button
+          onClick={() => onMonthChange(1)}
+          className="p-1.5 rounded-lg text-text-secondary hover:bg-surface active:bg-border-line transition-colors"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
       {/* Grid */}
       {filteredChores.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-warm-gray text-sm">
+        <div className="flex-1 flex items-center justify-center text-text-secondary text-sm">
           No chores in this category
         </div>
       ) : (
-        <div className="flex-1 overflow-x-auto overflow-y-auto px-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 overflow-x-auto px-2" style={{ WebkitOverflowScrolling: 'touch' }}>
           <table style={{ borderCollapse: 'separate', borderSpacing: '4px' }}>
             <thead>
               <tr>
-                {/* Day column header */}
                 <th
-                  className="sticky left-0 z-20 bg-cream"
-                  style={{ minWidth: 52, width: 52, verticalAlign: 'bottom', paddingBottom: 6 }}
-                >
-                  <span className="text-[11px] font-medium text-warm-gray">Day</span>
-                </th>
-
-                {/* Chore column headers */}
+                  className="sticky left-0 z-20 bg-page"
+                  style={{ minWidth: 28, width: 28, verticalAlign: 'bottom', paddingBottom: 4 }}
+                />
                 {filteredChores.map((chore) => (
                   <th
                     key={chore.id}
-                    style={{ width: 40, minWidth: 40, height: 80, padding: 0, verticalAlign: 'bottom' }}
+                    style={{ width: 16, minWidth: 16, height: 60, padding: 0, verticalAlign: 'bottom' }}
                   >
-                    <div className="flex items-end justify-center pb-1" style={{ height: 80 }}>
+                    <div className="flex items-end justify-center pb-1" style={{ height: 60 }}>
                       <span
-                        className="text-[11px] font-medium text-warm-gray whitespace-nowrap"
+                        className="text-[10px] font-normal text-text-secondary whitespace-nowrap"
                         style={{
                           display: 'inline-block',
                           transformOrigin: 'left bottom',
-                          transform: 'translateX(10px) rotate(-50deg)',
-                          maxWidth: 90,
+                          transform: 'translateX(8px) rotate(-55deg)',
+                          maxWidth: 70,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                         }}
@@ -129,35 +120,24 @@ export function MonthGrid({ logs = [], chores = [], categories = [], profiles = 
 
             <tbody>
               {days.map((day) => {
-                const { dayNum, dayName, isToday, isWeekend, isoDate } = formatDay(day)
+                const { dayNum, isToday, isWeekend, isoDate } = formatDay(day)
                 return (
-                  <tr
-                    key={isoDate}
-                    className={isToday ? 'bg-primary/5' : isWeekend ? 'bg-muted/30' : ''}
-                  >
-                    {/* Day cell */}
+                  <tr key={isoDate}>
                     <td
-                      className="sticky left-0 z-10 sticky-col"
-                      style={{
-                        background: isToday ? 'rgb(252 240 232)' : isWeekend ? 'rgb(248 245 242)' : '#FBF7F4',
-                        minWidth: 52,
-                        width: 52,
-                        paddingRight: 6,
-                      }}
+                      className="sticky left-0 z-10 bg-page"
+                      style={{ minWidth: 28, width: 28, paddingRight: 4 }}
                     >
-                      <div className="text-right leading-none py-0.5">
+                      <div className="text-right leading-none py-px">
                         <span
-                          className={`text-sm font-${isToday ? 'bold' : 'normal'} ${
-                            isToday ? 'text-primary' : 'text-text-main'
+                          className={`text-[11px] font-medium ${
+                            isToday ? 'text-accent' : isWeekend ? 'text-text-secondary/50' : 'text-text-secondary'
                           }`}
                         >
                           {dayNum}
                         </span>
-                        <span className="text-[10px] text-warm-gray block">{dayName}</span>
                       </div>
                     </td>
 
-                    {/* Chore cells */}
                     {filteredChores.map((chore) => {
                       const key = `${isoDate}:${chore.id}`
                       const data = cellData[key] ?? { rc: 0, mc: 0, logs: [] }
