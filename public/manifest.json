@@ -2,13 +2,13 @@
   "name": "House Chores",
   "short_name": "Chores",
   "description": "Track house chores together",
-  "start_url": "/house-chores/",
+  "start_url": "/House-Chores/",
   "display": "standalone",
   "background_color": "#FBF7F4",
   "theme_color": "#C07B54",
   "icons": [
     {
-      "src": "/house-chores/icon.svg",
+      "src": "/House-Chores/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

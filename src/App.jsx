@@ -131,8 +131,8 @@ function scheduleDailyNotification(hour) {
     try {
       const n = new Notification('House Chores 🏠', {
         body: "Daily recap time! Check what got done today.",
-        icon: '/house-chores/icon-192.png',
-        badge: '/house-chores/icon-192.png',
+        icon: '/House-Chores/icon-192.png',
+        badge: '/House-Chores/icon-192.png',
         tag: 'daily-overview',
       })
       n.onclick = () => {

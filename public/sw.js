@@ -15,8 +15,8 @@ self.addEventListener('push', (e) => {
   e.waitUntil(
     self.registration.showNotification(data.title ?? 'House Chores 🏠', {
       body: data.body ?? 'Daily recap time!',
-      icon: '/house-chores/icon-192.png',
-      badge: '/house-chores/icon-192.png',
+      icon: '/House-Chores/icon-192.png',
+      badge: '/House-Chores/icon-192.png',
       tag: 'daily-overview',
       data: { url: data.url ?? '/#/overview' },
     })
