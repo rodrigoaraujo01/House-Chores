@@ -15,7 +15,7 @@ export function MonthGridPage() {
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
-  const [detail, setDetail] = useState(null) // { day, chore, logs }
+  const [detail, setDetail] = useState(null)
 
   const { profile } = useAuth()
   const { data: chores = [] } = useChores()
@@ -26,8 +26,6 @@ export function MonthGridPage() {
   const addLog = useAddLog()
   const deleteLog = useDeleteLog()
   const scores = useScores(logs, profiles, chores)
-
-  // Realtime is handled inside useMonthLogs via onSnapshot — no extra setup needed
 
   function handleMonthChange(delta) {
     const d = new Date(year, month + delta)
@@ -60,14 +58,14 @@ export function MonthGridPage() {
     <Layout>
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="px-4 pt-12 pb-3">
-          <h1 className="text-xl font-semibold text-text-main">Chores</h1>
+        <div className="px-4 pt-safe">
+          <div className="pt-3 pb-1">
+            <h1 className="text-lg font-semibold text-text-primary">Chores</h1>
+          </div>
         </div>
 
-        {/* Score board */}
-        <div className="mb-3">
-          <ScoreBoard scores={scores} />
-        </div>
+        {/* Collapsible score row */}
+        <ScoreBoard scores={scores} />
 
         {/* Grid */}
         <div className="flex-1 overflow-hidden">
@@ -84,7 +82,6 @@ export function MonthGridPage() {
         </div>
       </div>
 
-      {/* Cell detail sheet */}
       <ChoreDetailSheet
         open={!!detail}
         onClose={() => setDetail(null)}
