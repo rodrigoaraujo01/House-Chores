@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Profiles: any authenticated user can read; only the owner can write
+    match /profiles/{userId} {
+      allow read:  if isAuth();
+      allow write: if isAuth() && request.auth.uid == userId;
+    }
+
+    // Categories: any authenticated user can read and write
+    match /categories/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // Chores: any authenticated user can read and write
+    match /chores/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // Chore logs: any authenticated user can read;
+    //             only the owner can create or delete their own log
+    match /chore_logs/{docId} {
+      allow read:   if isAuth();
+      allow create: if isAuth() && request.auth.uid == request.resource.data.user_id;
+      allow delete: if isAuth() && request.auth.uid == resource.data.user_id;
+    }
+  }
+}
