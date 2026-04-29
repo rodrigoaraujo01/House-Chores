@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { X, Plus } from 'lucide-react'
+import { X, Plus, Clock } from 'lucide-react'
 import { USER_COLORS } from '../lib/utils'
 
 function toDatetimeLocal(date) {
@@ -89,11 +89,15 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
 
         {/* Date/time picker */}
         <div className="px-4 pb-3">
+          <label className="text-xs font-medium text-warm-gray mb-1 flex items-center gap-1">
+            <Clock size={12} />
+            When
+          </label>
           <input
             type="datetime-local"
             value={loggedAt}
             onChange={(e) => setLoggedAt(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main outline-none focus:bg-white border border-transparent focus:border-primary transition-colors"
+            className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main outline-none focus:bg-white border border-warm-border focus:border-primary transition-colors"
           />
         </div>
 

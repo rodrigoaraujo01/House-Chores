@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Plus, Pencil, Trash2, X, Check } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useChores, useCategories, useUpsertChore, useUpsertCategory, useDeleteChore, useDeleteCategory } from '../hooks/useChores'
@@ -54,6 +54,13 @@ function ChoresTab({ profile }) {
   const upsert = useUpsertChore()
   const remove = useDeleteChore()
   const [form, setForm] = useState(null) // null | {} | chore
+  const formRef = useRef(null)
+
+  useEffect(() => {
+    if (form && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [form])
 
   async function handleSave() {
     if (!form?.name?.trim()) return toast.error('Name is required')
@@ -61,12 +68,13 @@ function ChoresTab({ profile }) {
       await upsert.mutateAsync({
         ...form,
         weight: parseFloat(form.weight) || 1,
+        category_id: form.category_id || null,
         created_by: form.id ? form.created_by : profile?.id,
       })
       toast.success(form.id ? 'Chore updated' : 'Chore created')
       setForm(null)
-    } catch {
-      toast.error('Something went wrong')
+    } catch (err) {
+      toast.error(err?.message ?? 'Something went wrong')
     }
   }
 
@@ -89,14 +97,16 @@ function ChoresTab({ profile }) {
       </Button>
 
       {form && (
-        <ChoreForm
-          form={form}
-          categories={categories}
-          onChange={(f) => setForm(f)}
-          onSave={handleSave}
-          onCancel={() => setForm(null)}
-          saving={upsert.isPending}
-        />
+        <div ref={formRef}>
+          <ChoreForm
+            form={form}
+            categories={categories}
+            onChange={(f) => setForm(f)}
+            onSave={handleSave}
+            onCancel={() => setForm(null)}
+            saving={upsert.isPending}
+          />
+        </div>
       )}
 
       {chores.length === 0 && !form && (
@@ -186,8 +196,8 @@ function CategoriesTab({ profile }) {
       })
       toast.success(form.id ? 'Category updated' : 'Category created')
       setForm(null)
-    } catch {
-      toast.error('Something went wrong')
+    } catch (err) {
+      toast.error(err?.message ?? 'Something went wrong')
     }
   }
 

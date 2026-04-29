@@ -35,9 +35,9 @@ export function MonthGridPage() {
     setMonth(d.getMonth())
   }
 
-  async function handleLog({ chore_id, user_id }) {
+  async function handleLog({ chore_id, user_id, logged_at }) {
     try {
-      await addLog.mutateAsync({ chore_id, user_id })
+      await addLog.mutateAsync({ chore_id, user_id, logged_at })
       const chore = chores.find((c) => c.id === chore_id)
       toast.success(`${chore?.name ?? 'Chore'} logged! +${chore?.weight ?? 1}pt`)
     } catch {
