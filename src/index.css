@@ -15,25 +15,24 @@
   }
 
   body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background-color: #FBF7F4;
-    color: #2C2825;
+    font-family: 'Outfit', system-ui, sans-serif;
+    background-color: #FAFAF8;
+    color: #2D2B28;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #E8DDD5; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: #EDEDE8; border-radius: 4px; }
 }
 
 @layer components {
   .sheet-handle {
-    @apply w-10 h-1 bg-warm-border rounded-full mx-auto mt-3 mb-2;
+    @apply w-8 h-0.5 bg-border-line rounded-full mx-auto mt-3 mb-2;
   }
 
   .bottom-sheet {
-    @apply fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-soft;
+    @apply fixed bottom-0 left-0 right-0 bg-page rounded-t-2xl shadow-soft;
     transform: translateY(100%);
     transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
     will-change: transform;
@@ -50,49 +49,39 @@
   }
 
   .backdrop.open {
-    @apply bg-black/30;
+    @apply bg-black/25;
     pointer-events: auto;
   }
 
   .pill {
-    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium transition-colors;
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors;
   }
 
   .pill-active {
-    @apply bg-primary text-white;
+    @apply bg-accent text-white;
   }
 
   .pill-inactive {
-    @apply bg-muted text-warm-gray;
-  }
-
-  .chore-btn {
-    @apply flex items-center justify-between w-full px-4 py-3 rounded-2xl bg-muted active:bg-warm-border transition-colors;
+    @apply bg-surface text-text-secondary;
   }
 
   .score-bar-bg {
-    @apply h-2 rounded-full bg-muted overflow-hidden;
+    @apply h-1.5 rounded-full bg-surface overflow-hidden;
+  }
+
+  .hairline {
+    @apply border-b border-border-line;
+  }
+
+  .section-label {
+    @apply text-[11px] font-normal text-text-secondary uppercase tracking-[0.08em];
   }
 }
 
-/* Safe area insets for iOS notch / home indicator */
 @supports (padding: env(safe-area-inset-bottom)) {
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .pt-safe { padding-top: env(safe-area-inset-top); }
 }
 
-/* Hide scrollbars but keep scrolling */
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
-
-/* Grid sticky shadows */
-.sticky-col::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -8px;
-  bottom: 0;
-  width: 8px;
-  background: linear-gradient(to right, rgba(44,40,37,0.06), transparent);
-  pointer-events: none;
-}

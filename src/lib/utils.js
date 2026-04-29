@@ -18,14 +18,14 @@ export const USER_COLORS = {
     bg: 'bg-rodrigo',
     bgLight: 'bg-rodrigo-light',
     text: 'text-rodrigo-dark',
-    hex: '#F97316',
+    hex: '#F4A89A',
     label: 'Rodrigo',
   },
   green: {
     bg: 'bg-maiana',
     bgLight: 'bg-maiana-light',
     text: 'text-maiana-dark',
-    hex: '#52B788',
+    hex: '#8ECFA0',
     label: 'Maiana',
   },
 }
@@ -45,10 +45,10 @@ export function getCellState(rc, mc) {
 }
 
 export const CELL_STYLES = {
-  empty: 'bg-muted border border-warm-border',
-  rodrigo: 'bg-rodrigo shadow-sm',
-  maiana: 'bg-maiana shadow-sm',
-  both: 'bg-both shadow-sm',
+  empty: 'bg-dot-empty',
+  rodrigo: 'bg-rodrigo',
+  maiana: 'bg-maiana',
+  both: 'bg-both',
 }
 
 // ─── Date helpers ───────────────────────────────────────────────────────────
