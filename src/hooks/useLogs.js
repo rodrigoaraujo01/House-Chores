@@ -39,10 +39,17 @@ export function useMonthLogs(year, month) {
       orderBy('logged_at')
     )
 
-    const unsubscribe = onSnapshot(q, (snap) => {
-      setLogs(snap.docs.map(docToLog))
-      setIsLoading(false)
-    })
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setLogs(snap.docs.map(docToLog))
+        setIsLoading(false)
+      },
+      (err) => {
+        console.error('Firestore snapshot error:', err)
+        setIsLoading(false)
+      }
+    )
 
     return unsubscribe
   }, [year, month])
