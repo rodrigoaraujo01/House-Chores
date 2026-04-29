@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, LogOut } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useChores, useCategories, useUpsertChore, useUpsertCategory, useDeleteChore, useDeleteCategory } from '../hooks/useChores'
 import { Layout } from '../components/Layout'
@@ -11,13 +11,20 @@ const EMOJIS = ['🏠', '🧹', '🍳', '👶', '🐾', '🌿', '🧺', '🚿', 
 
 export function ManagePage() {
   const [tab, setTab] = useState('chores')
-  const { profile } = useAuth()
+  const { profile, signOut } = useAuth()
 
   return (
     <Layout>
       <div className="px-4 pt-safe">
-        <div className="pt-3 pb-4">
+        <div className="pt-3 pb-4 flex items-center justify-between">
           <h1 className="text-lg font-semibold text-text-primary">Manage</h1>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-red-500 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-50"
+          >
+            <LogOut size={14} />
+            Sign out
+          </button>
         </div>
 
         {/* Underline tab switch */}

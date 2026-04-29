@@ -2,12 +2,10 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 import { useChores, useCategories } from '../hooks/useChores'
-import { useMonthLogs, useAddLog, useDeleteLog } from '../hooks/useLogs'
+import { useMonthLogs, useAddLog, useDeleteLog, useUpdateLog } from '../hooks/useLogs'
 import { useProfiles } from '../hooks/useProfiles'
-import { useScores } from '../hooks/useScores'
 import { Layout } from '../components/Layout'
 import { MonthGrid } from '../components/MonthGrid'
-import { ScoreBoard } from '../components/ScoreBoard'
 import { ChoreDetailSheet } from '../components/ChoreDetailSheet'
 import { PageLoader } from '../components/LoadingSpinner'
 
@@ -25,7 +23,7 @@ export function MonthGridPage() {
 
   const addLog = useAddLog()
   const deleteLog = useDeleteLog()
-  const scores = useScores(logs, profiles, chores)
+  const updateLog = useUpdateLog()
 
   function handleMonthChange(delta) {
     const d = new Date(year, month + delta)
@@ -45,10 +43,19 @@ export function MonthGridPage() {
 
   async function handleDeleteLog(log) {
     try {
-      await deleteLog.mutateAsync({ id: log.id, logged_at: log.logged_at })
+      await deleteLog.mutateAsync({ id: log.id })
       toast.success('Log removed')
     } catch {
       toast.error('Failed to remove log')
+    }
+  }
+
+  async function handleEditLog({ id, logged_at }) {
+    try {
+      await updateLog.mutateAsync({ id, logged_at })
+      toast.success('Log updated')
+    } catch {
+      toast.error('Failed to update log')
     }
   }
 
@@ -57,17 +64,12 @@ export function MonthGridPage() {
   return (
     <Layout>
       <div className="flex flex-col h-full">
-        {/* Header */}
         <div className="px-4 pt-safe">
           <div className="pt-3 pb-1">
-            <h1 className="text-lg font-semibold text-text-primary">Chores</h1>
+            <h1 className="text-lg font-semibold text-text-primary">Month</h1>
           </div>
         </div>
 
-        {/* Collapsible score row */}
-        <ScoreBoard scores={scores} />
-
-        {/* Grid */}
         <div className="flex-1 overflow-hidden">
           <MonthGrid
             logs={logs}
@@ -98,6 +100,7 @@ export function MonthGridPage() {
           await handleDeleteLog(log)
           setDetail(null)
         }}
+        onEditLog={handleEditLog}
       />
     </Layout>
   )

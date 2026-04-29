@@ -7,24 +7,27 @@ function toDatetimeLocal(date) {
   return format(date, "yyyy-MM-dd'T'HH:mm")
 }
 
-export function LogChoreSheet({ open, onClose, chores = [], categories = [], suggestions = [], profile, todayLogs = [], onLog }) {
+export function LogChoreSheet({ open, onClose, chores = [], categories = [], suggestions = [], profile, profiles = [], todayLogs = [], onLog }) {
   const [search, setSearch] = useState('')
   const [logging, setLogging] = useState(null)
   const [loggedAt, setLoggedAt] = useState(() => toDatetimeLocal(new Date()))
+  const [selectedUserId, setSelectedUserId] = useState(profile?.id)
 
   useEffect(() => {
     if (!open) {
       setSearch('')
     } else {
       setLoggedAt(toDatetimeLocal(new Date()))
+      setSelectedUserId(profile?.id)
     }
-  }, [open])
+  }, [open, profile?.id])
 
-  const colorInfo = USER_COLORS[profile?.color] ?? USER_COLORS.yellow
+  const selectedProfile = profiles.find((p) => p.id === selectedUserId) ?? profile
+  const colorInfo = USER_COLORS[selectedProfile?.color] ?? USER_COLORS.yellow
 
   const todayCounts = {}
   todayLogs.forEach((l) => {
-    if (l.user_id === profile?.id) {
+    if (l.user_id === selectedUserId) {
       todayCounts[l.chore_id] = (todayCounts[l.chore_id] ?? 0) + 1
     }
   })
@@ -42,12 +45,12 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
   if (uncategorized.length) grouped.push({ cat: { id: 'none', name: 'Other', emoji: '📌' }, chores: uncategorized })
 
   async function handleLog(chore) {
-    if (!profile) return
+    if (!selectedProfile) return
     setLogging(chore.id)
     try {
       await onLog({
         chore_id: chore.id,
-        user_id: profile.id,
+        user_id: selectedProfile.id,
         logged_at: new Date(loggedAt).toISOString(),
       })
     } finally {
@@ -71,19 +74,39 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 pb-2">
-          <div>
-            <h3 className="text-base font-semibold text-text-primary">Log a chore</h3>
-            <p className="text-xs text-text-secondary">
-              As{' '}
-              <span style={{ color: colorInfo.hex }} className="font-medium">
-                {profile?.display_name}
-              </span>
-            </p>
-          </div>
+          <h3 className="text-base font-semibold text-text-primary">Log a chore</h3>
           <button onClick={onClose} className="p-2 rounded-lg text-text-secondary hover:bg-surface">
             <X size={18} />
           </button>
         </div>
+
+        {/* User switcher */}
+        {profiles.length > 1 && (
+          <div className="px-4 pb-3 flex gap-2">
+            {profiles.map((p) => {
+              const ci = USER_COLORS[p.color] ?? USER_COLORS.yellow
+              const active = p.id === selectedUserId
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setSelectedUserId(p.id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                  style={
+                    active
+                      ? { backgroundColor: ci.hex, color: '#fff' }
+                      : { backgroundColor: 'var(--color-surface, #F0ECE8)', color: ci.hex, border: `1.5px solid ${ci.hex}` }
+                  }
+                >
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: active ? 'rgba(255,255,255,0.7)' : ci.hex }}
+                  />
+                  {p.display_name}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {/* Date/time picker */}
         <div className="px-4 pb-3">

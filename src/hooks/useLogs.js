@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  collection, addDoc, deleteDoc, getDocs,
+  collection, addDoc, deleteDoc, updateDoc, getDocs,
   doc, query, where, orderBy, limit,
-  onSnapshot, Timestamp, serverTimestamp,
+  onSnapshot, Timestamp,
 } from 'firebase/firestore'
 import { startOfMonth, endOfMonth } from 'date-fns'
 import { db } from '../lib/firebase'
@@ -109,6 +109,24 @@ export function useDeleteLog() {
     setIsPending(true)
     try {
       await deleteDoc(doc(db, 'chore_logs', id))
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  return { mutateAsync, isPending }
+}
+
+// ─── Update log ───────────────────────────────────────────────────────────────
+
+export function useUpdateLog() {
+  const [isPending, setIsPending] = useState(false)
+
+  async function mutateAsync({ id, logged_at }) {
+    setIsPending(true)
+    try {
+      const ts = Timestamp.fromDate(new Date(logged_at))
+      await updateDoc(doc(db, 'chore_logs', id), { logged_at: ts })
     } finally {
       setIsPending(false)
     }

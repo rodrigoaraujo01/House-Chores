@@ -10,8 +10,8 @@ import { useProfiles } from './hooks/useProfiles'
 import { useSuggestions } from './hooks/useSuggestions'
 import { LogChoreSheet } from './components/LogChoreSheet'
 import { LoginPage } from './pages/LoginPage'
+import { TodayPage } from './pages/TodayPage'
 import { MonthGridPage } from './pages/MonthGridPage'
-import { DailyOverviewPage } from './pages/DailyOverviewPage'
 import { ManagePage } from './pages/ManagePage'
 import { PageLoader } from './components/LoadingSpinner'
 import { startOfDay, endOfDay, parseISO, isWithinInterval } from 'date-fns'
@@ -70,8 +70,8 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<MonthGridPage />} />
-      <Route path="/overview" element={<DailyOverviewPage />} />
+      <Route path="/" element={<TodayPage />} />
+      <Route path="/month" element={<MonthGridPage />} />
       <Route path="/manage" element={<ManagePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -85,6 +85,7 @@ function GlobalLogSheet() {
   const now = new Date()
   const { data: chores = [] } = useChores()
   const { data: categories = [] } = useCategories()
+  const { data: profiles = [] } = useProfiles()
   const { data: logs = [] } = useMonthLogs(now.getFullYear(), now.getMonth())
   const { data: historicalLogs = [] } = useHistoricalLogs()
   const addLog = useAddLog()
@@ -115,6 +116,7 @@ function GlobalLogSheet() {
       categories={categories}
       suggestions={suggestions}
       profile={profile}
+      profiles={profiles}
       todayLogs={todayLogs}
       onLog={handleLog}
     />
@@ -139,7 +141,7 @@ function scheduleDailyNotification(hour) {
       })
       n.onclick = () => {
         window.focus()
-        window.location.hash = '#/overview'
+        window.location.hash = '#/'
       }
     } catch {
       // Notifications not available

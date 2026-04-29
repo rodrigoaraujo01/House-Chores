@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
-import { X, Trash2, Plus, Clock } from 'lucide-react'
+import { X, Trash2, Plus, Clock, Pencil, Check } from 'lucide-react'
 import { USER_COLORS } from '../lib/utils'
 
 function toDatetimeLocal(date) {
   return format(date, "yyyy-MM-dd'T'HH:mm")
 }
 
-export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profiles = [], currentUserId, onLog, onDeleteLog }) {
+export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profiles = [], currentUserId, onLog, onDeleteLog, onEditLog }) {
   const [loggedAt, setLoggedAt] = useState(() => toDatetimeLocal(new Date()))
+  const [editingLogId, setEditingLogId] = useState(null)
+  const [editingAt, setEditingAt] = useState('')
 
   useEffect(() => {
-    if (open) setLoggedAt(toDatetimeLocal(new Date()))
+    if (open) {
+      setLoggedAt(toDatetimeLocal(new Date()))
+      setEditingLogId(null)
+    }
   }, [open])
 
   if (!chore || !day) return null
@@ -21,6 +26,20 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
 
   const currentProfile = profiles.find((p) => p.id === currentUserId)
   const colorInfo = currentProfile ? (USER_COLORS[currentProfile.color] ?? USER_COLORS.yellow) : USER_COLORS.yellow
+
+  function startEdit(log) {
+    setEditingLogId(log.id)
+    setEditingAt(toDatetimeLocal(parseISO(log.logged_at)))
+  }
+
+  function cancelEdit() {
+    setEditingLogId(null)
+  }
+
+  async function saveEdit(log) {
+    await onEditLog({ id: log.id, logged_at: new Date(editingAt).toISOString() })
+    setEditingLogId(null)
+  }
 
   return (
     <>
@@ -52,31 +71,62 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
               {logs.map((log, i) => {
                 const color = colorMap[log.user_id]
                 const name = nameMap[log.user_id] ?? 'Unknown'
-                const isOwn = log.user_id === currentUserId
+                const isEditing = editingLogId === log.id
                 return (
-                  <div
-                    key={log.id}
-                    className={`flex items-center justify-between py-3 ${i < logs.length - 1 ? 'hairline' : ''}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: color?.hex ?? '#ccc' }}
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">{name}</p>
-                        <p className="text-xs text-text-secondary">
-                          {format(parseISO(log.logged_at), 'HH:mm')}
-                        </p>
+                  <div key={log.id} className={`py-3 ${i < logs.length - 1 ? 'hairline' : ''}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: color?.hex ?? '#ccc' }}
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-text-primary">{name}</p>
+                          <p className="text-xs text-text-secondary">
+                            {format(parseISO(log.logged_at), 'HH:mm')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {!isEditing && (
+                          <button
+                            onClick={() => startEdit(log)}
+                            className="p-1.5 rounded-lg text-text-secondary hover:text-accent hover:bg-surface transition-colors"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                        )}
+                        {isEditing && (
+                          <button
+                            onClick={cancelEdit}
+                            className="p-1.5 rounded-lg text-text-secondary hover:bg-surface transition-colors text-xs font-medium"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onDeleteLog(log)}
+                          className="p-1.5 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-                    {isOwn && (
-                      <button
-                        onClick={() => onDeleteLog(log)}
-                        className="p-1.5 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                    {isEditing && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <input
+                          type="datetime-local"
+                          value={editingAt}
+                          onChange={(e) => setEditingAt(e.target.value)}
+                          className="flex-1 px-3 py-2 rounded-xl bg-surface text-sm text-text-primary outline-none border border-border-line focus:border-accent transition-colors"
+                        />
+                        <button
+                          onClick={() => saveEdit(log)}
+                          className="p-2 rounded-xl bg-accent text-white active:scale-95 transition-transform"
+                        >
+                          <Check size={15} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 )
