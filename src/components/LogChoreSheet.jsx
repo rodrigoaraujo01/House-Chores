@@ -1,19 +1,29 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { X, Check, Plus, Minus } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 import { USER_COLORS } from '../lib/utils'
+
+function toDatetimeLocal(date) {
+  // format as YYYY-MM-DDTHH:mm for datetime-local input
+  return format(date, "yyyy-MM-dd'T'HH:mm")
+}
 
 export function LogChoreSheet({ open, onClose, chores = [], categories = [], suggestions = [], profile, todayLogs = [], onLog }) {
   const [search, setSearch] = useState('')
-  const [logging, setLogging] = useState(null) // chore id being logged
+  const [logging, setLogging] = useState(null)
+  const [loggedAt, setLoggedAt] = useState(() => toDatetimeLocal(new Date()))
 
   useEffect(() => {
-    if (!open) setSearch('')
+    if (!open) {
+      setSearch('')
+    } else {
+      // Reset to current time each time the sheet opens
+      setLoggedAt(toDatetimeLocal(new Date()))
+    }
   }, [open])
 
   const colorInfo = USER_COLORS[profile?.color] ?? USER_COLORS.yellow
 
-  // Count how many times current user logged each chore today
   const todayCounts = {}
   todayLogs.forEach((l) => {
     if (l.user_id === profile?.id) {
@@ -25,10 +35,9 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
     ? chores.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
     : chores
 
-  // Group by category
   const grouped = categories.reduce((acc, cat) => {
-    const choreList = filtered.filter((c) => c.category_id === cat.id)
-    if (choreList.length) acc.push({ cat, chores: choreList })
+    const list = filtered.filter((c) => c.category_id === cat.id)
+    if (list.length) acc.push({ cat, chores: list })
     return acc
   }, [])
   const uncategorized = filtered.filter((c) => !c.category_id)
@@ -38,7 +47,11 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
     if (!profile) return
     setLogging(chore.id)
     try {
-      await onLog({ chore_id: chore.id, user_id: profile.id })
+      await onLog({
+        chore_id: chore.id,
+        user_id: profile.id,
+        logged_at: new Date(loggedAt).toISOString(),
+      })
     } finally {
       setLogging(null)
     }
@@ -50,34 +63,38 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
 
   return (
     <>
-      {/* Backdrop */}
       <div className={`backdrop ${open ? 'open' : ''} z-40`} onClick={onClose} />
 
-      {/* Sheet */}
       <div
-        className={`bottom-sheet z-50 flex flex-col`}
-        style={{
-          transform: open ? 'translateY(0)' : 'translateY(100%)',
-          maxHeight: '82vh',
-        }}
+        className="bottom-sheet z-50 flex flex-col"
+        style={{ transform: open ? 'translateY(0)' : 'translateY(100%)', maxHeight: '85vh' }}
       >
         <div className="sheet-handle" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 pb-3">
+        <div className="flex items-center justify-between px-4 pb-2">
           <div>
             <h3 className="text-base font-semibold text-text-main">Log a chore</h3>
             <p className="text-xs text-warm-gray">
-              Logging as{' '}
+              As{' '}
               <span style={{ color: colorInfo.hex }} className="font-medium">
                 {profile?.display_name}
               </span>
-              {' · '}{format(new Date(), 'HH:mm')}
             </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl text-warm-gray hover:bg-muted">
             <X size={18} />
           </button>
+        </div>
+
+        {/* Date/time picker */}
+        <div className="px-4 pb-3">
+          <input
+            type="datetime-local"
+            value={loggedAt}
+            onChange={(e) => setLoggedAt(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main outline-none focus:bg-white border border-transparent focus:border-primary transition-colors"
+          />
         </div>
 
         {/* Search */}
@@ -93,11 +110,10 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-4">
-          {/* Suggestions */}
           {!search.trim() && suggestedFiltered.length > 0 && (
             <section>
               <h4 className="text-xs font-semibold text-warm-gray uppercase tracking-wide mb-2">
-                ✨ Suggested for you
+                ✨ Suggested
               </h4>
               <div className="space-y-2">
                 {suggestedFiltered.map((chore) => (
@@ -114,7 +130,6 @@ export function LogChoreSheet({ open, onClose, chores = [], categories = [], sug
             </section>
           )}
 
-          {/* All chores grouped by category */}
           {grouped.map(({ cat, chores: list }) => (
             <section key={cat.id}>
               <h4 className="text-xs font-semibold text-warm-gray uppercase tracking-wide mb-2 flex items-center gap-1">
@@ -153,7 +168,7 @@ function ChoreRow({ chore, count, loading, onLog, colorHex }) {
         <p className="text-xs text-warm-gray">
           {chore.weight}pt{chore.weight !== 1 ? 's' : ''}
           {count > 0 && (
-            <span className="ml-2" style={{ color: colorHex }}>
+            <span className="ml-2 font-medium" style={{ color: colorHex }}>
               ✓ {count}× today
             </span>
           )}
@@ -165,11 +180,10 @@ function ChoreRow({ chore, count, loading, onLog, colorHex }) {
         className="ml-3 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm active:scale-90 transition-transform disabled:opacity-60"
         style={{ backgroundColor: colorHex }}
       >
-        {loading ? (
-          <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-        ) : (
-          <Plus size={18} />
-        )}
+        {loading
+          ? <div className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+          : <Plus size={18} />
+        }
       </button>
     </div>
   )

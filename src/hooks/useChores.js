@@ -78,6 +78,7 @@ export function useUpsertChore() {
       }
       const ref = await addDoc(collection(db, 'chores'), {
         ...data,
+        is_active: true,
         created_at: serverTimestamp(),
       })
       return { id: ref.id, ...data }
