@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useChores, useCategories, useUpsertChore, useUpsertCategory, useDeleteChore, useDeleteCategory } from '../hooks/useChores'
 import { Layout } from '../components/Layout'
@@ -10,30 +10,34 @@ import { useAuth } from '../hooks/useAuth'
 const EMOJIS = ['🏠', '🧹', '🍳', '👶', '🐾', '🌿', '🧺', '🚿', '🛒', '🔧', '📦', '✨']
 
 export function ManagePage() {
-  const [tab, setTab] = useState('chores') // 'chores' | 'categories'
+  const [tab, setTab] = useState('chores')
   const { profile } = useAuth()
 
   return (
     <Layout>
       <div className="px-4 pt-safe">
-        <div className="pt-4 pb-4">
-          <h1 className="text-xl font-semibold text-text-main">Manage</h1>
+        <div className="pt-3 pb-4">
+          <h1 className="text-lg font-semibold text-text-primary">Manage</h1>
         </div>
 
-        {/* Tab switch */}
-        <div className="flex gap-2 mb-5 bg-muted p-1 rounded-2xl">
+        {/* Underline tab switch */}
+        <div className="flex gap-6 mb-5">
           <button
             onClick={() => setTab('chores')}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-              tab === 'chores' ? 'bg-white text-text-main shadow-sm' : 'text-warm-gray'
+            className={`pb-2 text-sm font-medium transition-colors ${
+              tab === 'chores'
+                ? 'text-accent border-b-2 border-accent'
+                : 'text-text-secondary'
             }`}
           >
             Chores
           </button>
           <button
             onClick={() => setTab('categories')}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-              tab === 'categories' ? 'bg-white text-text-main shadow-sm' : 'text-warm-gray'
+            className={`pb-2 text-sm font-medium transition-colors ${
+              tab === 'categories'
+                ? 'text-accent border-b-2 border-accent'
+                : 'text-text-secondary'
             }`}
           >
             Categories
@@ -46,14 +50,12 @@ export function ManagePage() {
   )
 }
 
-// ─── Chores Tab ───────────────────────────────────────────────────────────────
-
 function ChoresTab({ profile }) {
   const { data: chores = [] } = useChores()
   const { data: categories = [] } = useCategories()
   const upsert = useUpsertChore()
   const remove = useDeleteChore()
-  const [form, setForm] = useState(null) // null | {} | chore
+  const [form, setForm] = useState(null)
   const formRef = useRef(null)
 
   useEffect(() => {
@@ -90,14 +92,14 @@ function ChoresTab({ profile }) {
   const catMap = Object.fromEntries(categories.map((c) => [c.id, c]))
 
   return (
-    <div className="space-y-3 pb-8">
-      <Button onClick={() => setForm({ name: '', weight: '1', category_id: '' })} className="w-full">
+    <div className="pb-8">
+      <Button onClick={() => setForm({ name: '', weight: '1', category_id: '' })} className="w-full mb-4">
         <Plus size={16} />
         Add chore
       </Button>
 
       {form && (
-        <div ref={formRef}>
+        <div ref={formRef} className="mb-4">
           <ChoreForm
             form={form}
             categories={categories}
@@ -110,21 +112,21 @@ function ChoresTab({ profile }) {
       )}
 
       {chores.length === 0 && !form && (
-        <p className="text-center text-warm-gray text-sm py-8">No chores yet. Add one!</p>
+        <p className="text-center text-text-secondary text-sm py-8">No chores yet. Add one!</p>
       )}
 
-      {chores.map((chore) => (
-        <div key={chore.id} className="bg-white rounded-2xl px-4 py-3 shadow-card flex items-center gap-3">
+      {chores.map((chore, i) => (
+        <div key={chore.id} className={`flex items-center gap-3 py-3 ${i < chores.length - 1 ? 'hairline' : ''}`}>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-text-main">{chore.name}</p>
-            <p className="text-xs text-warm-gray">
+            <p className="text-sm font-medium text-text-primary">{chore.name}</p>
+            <p className="text-xs text-text-secondary">
               {chore.weight}pt · {catMap[chore.category_id]?.emoji} {catMap[chore.category_id]?.name ?? 'No category'}
             </p>
           </div>
-          <button onClick={() => setForm({ ...chore, weight: String(chore.weight) })} className="p-2 text-warm-gray hover:text-primary rounded-xl hover:bg-muted">
+          <button onClick={() => setForm({ ...chore, weight: String(chore.weight) })} className="p-2 text-text-secondary hover:text-accent rounded-lg hover:bg-surface">
             <Pencil size={15} />
           </button>
-          <button onClick={() => handleDelete(chore.id)} className="p-2 text-warm-gray hover:text-red-500 rounded-xl hover:bg-red-50">
+          <button onClick={() => handleDelete(chore.id)} className="p-2 text-text-secondary hover:text-red-500 rounded-lg hover:bg-red-50">
             <Trash2 size={15} />
           </button>
         </div>
@@ -135,7 +137,7 @@ function ChoresTab({ profile }) {
 
 function ChoreForm({ form, categories, onChange, onSave, onCancel, saving }) {
   return (
-    <div className="bg-white rounded-3xl p-4 shadow-card space-y-3">
+    <div className="bg-surface rounded-xl p-4 space-y-3">
       <Input
         label="Chore name"
         placeholder="e.g. Wash dishes"
@@ -179,8 +181,6 @@ function ChoreForm({ form, categories, onChange, onSave, onCancel, saving }) {
   )
 }
 
-// ─── Categories Tab ───────────────────────────────────────────────────────────
-
 function CategoriesTab({ profile }) {
   const { data: categories = [] } = useCategories()
   const upsert = useUpsertCategory()
@@ -211,34 +211,36 @@ function CategoriesTab({ profile }) {
   }
 
   return (
-    <div className="space-y-3 pb-8">
-      <Button onClick={() => setForm({ name: '', emoji: '🏠' })} className="w-full">
+    <div className="pb-8">
+      <Button onClick={() => setForm({ name: '', emoji: '🏠' })} className="w-full mb-4">
         <Plus size={16} />
         Add category
       </Button>
 
       {form && (
-        <CategoryForm
-          form={form}
-          onChange={setForm}
-          onSave={handleSave}
-          onCancel={() => setForm(null)}
-          saving={upsert.isPending}
-        />
+        <div className="mb-4">
+          <CategoryForm
+            form={form}
+            onChange={setForm}
+            onSave={handleSave}
+            onCancel={() => setForm(null)}
+            saving={upsert.isPending}
+          />
+        </div>
       )}
 
       {categories.length === 0 && !form && (
-        <p className="text-center text-warm-gray text-sm py-8">No categories yet.</p>
+        <p className="text-center text-text-secondary text-sm py-8">No categories yet.</p>
       )}
 
-      {categories.map((cat) => (
-        <div key={cat.id} className="bg-white rounded-2xl px-4 py-3 shadow-card flex items-center gap-3">
+      {categories.map((cat, i) => (
+        <div key={cat.id} className={`flex items-center gap-3 py-3 ${i < categories.length - 1 ? 'hairline' : ''}`}>
           <span className="text-2xl">{cat.emoji}</span>
-          <span className="flex-1 text-sm font-medium text-text-main">{cat.name}</span>
-          <button onClick={() => setForm({ ...cat })} className="p-2 text-warm-gray hover:text-primary rounded-xl hover:bg-muted">
+          <span className="flex-1 text-sm font-medium text-text-primary">{cat.name}</span>
+          <button onClick={() => setForm({ ...cat })} className="p-2 text-text-secondary hover:text-accent rounded-lg hover:bg-surface">
             <Pencil size={15} />
           </button>
-          <button onClick={() => handleDelete(cat.id)} className="p-2 text-warm-gray hover:text-red-500 rounded-xl hover:bg-red-50">
+          <button onClick={() => handleDelete(cat.id)} className="p-2 text-text-secondary hover:text-red-500 rounded-lg hover:bg-red-50">
             <Trash2 size={15} />
           </button>
         </div>
@@ -249,7 +251,7 @@ function CategoriesTab({ profile }) {
 
 function CategoryForm({ form, onChange, onSave, onCancel, saving }) {
   return (
-    <div className="bg-white rounded-3xl p-4 shadow-card space-y-3">
+    <div className="bg-surface rounded-xl p-4 space-y-3">
       <Input
         label="Category name"
         placeholder="e.g. House"
@@ -257,14 +259,14 @@ function CategoryForm({ form, onChange, onSave, onCancel, saving }) {
         onChange={(e) => onChange({ ...form, name: e.target.value })}
       />
       <div>
-        <p className="text-sm font-medium text-text-main mb-2">Emoji</p>
+        <p className="text-sm font-medium text-text-primary mb-2">Emoji</p>
         <div className="flex flex-wrap gap-2">
           {EMOJIS.map((e) => (
             <button
               key={e}
               onClick={() => onChange({ ...form, emoji: e })}
-              className={`w-10 h-10 text-xl rounded-xl flex items-center justify-center transition-colors ${
-                form.emoji === e ? 'bg-primary/10 ring-2 ring-primary' : 'bg-muted hover:bg-warm-border'
+              className={`w-10 h-10 text-xl rounded-lg flex items-center justify-center transition-colors ${
+                form.emoji === e ? 'bg-accent/10 ring-2 ring-accent' : 'bg-surface hover:bg-border-line'
               }`}
             >
               {e}
