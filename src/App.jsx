@@ -53,15 +53,15 @@ export default function App() {
 function AppRoutes() {
   const { session } = useAuth()
 
-  // Schedule daily 22:00 notification (not supported on iOS Safari)
   useEffect(() => {
-    if (typeof Notification === 'undefined') return
-    if (Notification.permission === 'granted') {
-      const id = scheduleDailyNotification(22)
-      return () => clearTimeout(id)
-    }
-    if (Notification.permission === 'default') {
-      Notification.requestPermission()
+    try {
+      if (typeof Notification === 'undefined') return
+      if (Notification.permission === 'granted') {
+        const id = scheduleDailyNotification(22)
+        return () => clearTimeout(id)
+      }
+    } catch {
+      // Notification API unavailable (iOS Safari, restricted contexts)
     }
   }, [])
 
@@ -97,9 +97,9 @@ function GlobalLogSheet() {
     })
   )
 
-  async function handleLog({ chore_id, user_id }) {
+  async function handleLog({ chore_id, user_id, logged_at }) {
     try {
-      await addLog.mutateAsync({ chore_id, user_id })
+      await addLog.mutateAsync({ chore_id, user_id, logged_at })
       const chore = chores.find((c) => c.id === chore_id)
       toast.success(`${chore?.name ?? 'Chore'} logged! +${chore?.weight ?? 1}pt`)
     } catch {
@@ -133,8 +133,8 @@ function scheduleDailyNotification(hour) {
     try {
       const n = new Notification('House Chores 🏠', {
         body: "Daily recap time! Check what got done today.",
-        icon: '/House-Chores/icon-192.png',
-        badge: '/House-Chores/icon-192.png',
+        icon: '/House-Chores/icon.svg',
+        badge: '/House-Chores/icon.svg',
         tag: 'daily-overview',
       })
       n.onclick = () => {

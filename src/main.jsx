@@ -3,12 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 
-// Register service worker for background notifications
+// Unregister any leftover service worker from previous versions
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/House-Chores/sw.js')
-      .catch(() => {/* sw not available in dev */})
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    regs.forEach((r) => r.unregister())
   })
 }
 

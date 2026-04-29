@@ -1,8 +1,19 @@
+import { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
-import { X, Trash2, Plus } from 'lucide-react'
+import { X, Trash2, Plus, Clock } from 'lucide-react'
 import { USER_COLORS } from '../lib/utils'
 
+function toDatetimeLocal(date) {
+  return format(date, "yyyy-MM-dd'T'HH:mm")
+}
+
 export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profiles = [], currentUserId, onLog, onDeleteLog }) {
+  const [loggedAt, setLoggedAt] = useState(() => toDatetimeLocal(new Date()))
+
+  useEffect(() => {
+    if (open) setLoggedAt(toDatetimeLocal(new Date()))
+  }, [open])
+
   if (!chore || !day) return null
 
   const colorMap = Object.fromEntries(profiles.map((p) => [p.id, USER_COLORS[p.color] ?? USER_COLORS.yellow]))
@@ -73,15 +84,27 @@ export function ChoreDetailSheet({ open, onClose, chore, day, logs = [], profile
             </div>
           )}
 
-          {/* Log again button */}
-          <button
-            onClick={() => onLog({ chore_id: chore.id, user_id: currentUserId })}
-            className="w-full py-3 rounded-2xl text-sm font-medium text-white flex items-center justify-center gap-2 active:scale-95 transition-transform"
-            style={{ backgroundColor: colorInfo.hex }}
-          >
-            <Plus size={16} />
-            Log again as {currentProfile?.display_name}
-          </button>
+          {/* Log again with datetime picker */}
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-warm-gray flex items-center gap-1">
+              <Clock size={12} />
+              When
+            </label>
+            <input
+              type="datetime-local"
+              value={loggedAt}
+              onChange={(e) => setLoggedAt(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-2xl bg-muted text-sm text-text-main outline-none focus:bg-white border border-warm-border focus:border-primary transition-colors"
+            />
+            <button
+              onClick={() => onLog({ chore_id: chore.id, user_id: currentUserId, logged_at: new Date(loggedAt).toISOString() })}
+              className="w-full py-3 rounded-2xl text-sm font-medium text-white flex items-center justify-center gap-2 active:scale-95 transition-transform"
+              style={{ backgroundColor: colorInfo.hex }}
+            >
+              <Plus size={16} />
+              Log as {currentProfile?.display_name}
+            </button>
+          </div>
         </div>
       </div>
     </>
