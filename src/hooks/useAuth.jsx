@@ -27,25 +27,34 @@ export function AuthProvider({ children }) {
       }
       setSession(user)
 
-      const profileRef = doc(db, 'profiles', user.uid)
-      const snap = await getDoc(profileRef)
+      try {
+        const profileRef = doc(db, 'profiles', user.uid)
+        const snap = await getDoc(profileRef)
 
-      if (snap.exists()) {
-        setProfile({ id: user.uid, ...snap.data() })
-      } else {
-        // Auto-create on first login
+        if (snap.exists()) {
+          setProfile({ id: user.uid, ...snap.data() })
+        } else {
+          const defaults = KNOWN_PROFILES[user.email] ?? {
+            display_name: user.email.split('@')[0],
+            color: 'yellow',
+          }
+          const newProfile = {
+            email: user.email,
+            display_name: defaults.display_name,
+            color: defaults.color,
+            created_at: serverTimestamp(),
+          }
+          await setDoc(profileRef, newProfile)
+          setProfile({ id: user.uid, ...newProfile, created_at: new Date().toISOString() })
+        }
+      } catch (err) {
+        console.error('Profile load failed:', err)
+        // Fall back to a minimal profile so the app doesn't stay frozen
         const defaults = KNOWN_PROFILES[user.email] ?? {
           display_name: user.email.split('@')[0],
           color: 'yellow',
         }
-        const newProfile = {
-          email: user.email,
-          display_name: defaults.display_name,
-          color: defaults.color,
-          created_at: serverTimestamp(),
-        }
-        await setDoc(profileRef, newProfile)
-        setProfile({ id: user.uid, ...newProfile, created_at: new Date().toISOString() })
+        setProfile({ id: user.uid, email: user.email, ...defaults })
       }
     })
     return unsubscribe

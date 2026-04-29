@@ -7,7 +7,7 @@ import App from './App'
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/house-chores/sw.js')
+      .register('/House-Chores/sw.js')
       .catch(() => {/* sw not available in dev */})
   })
 }
